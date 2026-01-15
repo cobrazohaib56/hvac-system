@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Database } from '@/types_db';
 
 export default function Avatar({ uid, size }: { uid: string; size: number }) {
   const supabase = createClient();
@@ -13,11 +14,13 @@ export default function Avatar({ uid, size }: { uid: string; size: number }) {
   useEffect(() => {
     async function getUser() {
       try {
-        let { data, error } = await supabase
+        let { data: dataRaw, error } = await supabase
           .from('users')
           .select('avatar_url')
           .eq('id', uid)
           .single();
+
+        const data = dataRaw as Pick<Database['public']['Tables']['users']['Row'], 'avatar_url'> | null;
 
         if (data?.avatar_url) {
           setAvatarUrl(data.avatar_url);
@@ -75,7 +78,8 @@ export default function Avatar({ uid, size }: { uid: string; size: number }) {
     try {
       const { data, error } = await supabase
         .from('users')
-        .update({ avatar_url: avatar_url })
+        // @ts-expect-error - Supabase type inference issue
+        .update({ avatar_url })
         .eq('id', uid);
       if (error) throw error;
       setAvatarUrl(avatar_url);

@@ -27,7 +27,6 @@ export default function HomePage() {
           </ul>
           <div>
             <Button
-              href="#enquiry"
               asChild
               className="mt-4 rounded-full px-8 py-3 text-base font-semibold bg-[#00a7ff] hover:bg-[#0090d9]"
             >

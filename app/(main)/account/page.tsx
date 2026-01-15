@@ -4,6 +4,7 @@ import NameForm from '@/components/AccountForms/NameForm';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import Avatar from '@/components/avatar';
+import { Database } from '@/types_db';
 
 export default async function Account() {
   const supabase = createClient();
@@ -12,10 +13,17 @@ export default async function Account() {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const { data: userDetails } = await supabase
+  if (!user) {
+    return redirect('/signin');
+  }
+
+  const { data: userDetailsRaw } = await supabase
     .from('users')
     .select('*')
-    .single();
+    .eq('id', user.id)
+    .maybeSingle();
+  
+  const userDetails = userDetailsRaw as Database['public']['Tables']['users']['Row'] | null;
   const { data: subscription, error } = await supabase
     .from('subscriptions')
     .select('*, prices(*, products(*))')
@@ -24,10 +32,6 @@ export default async function Account() {
 
   if (error) {
     console.log(error);
-  }
-
-  if (!user) {
-    return redirect('/signin');
   }
 
   return (

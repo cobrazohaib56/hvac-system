@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getURL, getErrorRedirect, getStatusRedirect } from 'utils/helpers';
 import { getAuthTypes } from 'utils/auth-helpers/settings';
+import { Database } from '@/types_db';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -314,6 +315,7 @@ export async function updateName(formData: FormData) {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('users')
+      // @ts-expect-error - Supabase type inference issue
       .update({ full_name: fullName })
       .eq('id', userId);
 
