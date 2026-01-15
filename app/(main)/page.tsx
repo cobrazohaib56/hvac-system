@@ -1,13 +1,14 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Faq from '@/components/faq';
+// Landing page imports commented out - only showing call widget
+// import { Button } from '@/components/ui/button';
+// import EnquiryForm from '@/components/EnquiryForm';
+// import Faq from '@/components/faq';
 
 export default function HomePage() {
   return (
     <div className="bg-[#020b32] text-white">
+      {/* Landing page content commented out - only showing call widget */}
       {/* Hero + Enquiry form */}
-      <section className="max-w-6xl mx-auto px-4 lg:px-8 py-10 lg:py-16 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-start">
+      {/* <section className="max-w-6xl mx-auto px-4 lg:px-8 py-10 lg:py-16 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-start">
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.25em] text-blue-200">
             Leading heat pump experts since 2004
@@ -35,110 +36,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div
-          id="enquiry"
-          className="bg-white text-slate-900 rounded-xl shadow-2xl border border-blue-100 p-6 space-y-4"
-        >
-          <h2 className="text-lg font-semibold text-[#020b32]">
-            Send an enquiry
-          </h2>
-          <p className="text-xs text-slate-600">
-            Tell us about your property and we&apos;ll be in touch to discuss
-            the best heat pump solution for you.
-          </p>
-          <form className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  placeholder="John"
-                  autoComplete="given-name"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Doe"
-                  autoComplete="family-name"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="phone">Contact Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  placeholder="07..."
-                  autoComplete="tel"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="address">First Line of Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  placeholder="123 High Street"
-                  autoComplete="address-line1"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="postcode">Postcode</Label>
-                <Input
-                  id="postcode"
-                  name="postcode"
-                  placeholder="AB1 2CD"
-                  autoComplete="postal-code"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="details">Details of Project</Label>
-              <textarea
-                id="details"
-                name="details"
-                rows={4}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a7ff]"
-                placeholder="Tell us about your property, current heating system and when you’re looking to install."
-              />
-            </div>
-
-            <Button
-              type="button"
-              className="w-full rounded-md bg-[#00a7ff] hover:bg-[#0090d9] text-white font-semibold"
-            >
-              Send enquiry
-            </Button>
-
-            <p className="text-[10px] leading-snug text-slate-500">
-              By submitting this form you agree to our privacy policy and
-              consent to us contacting you about your enquiry.
-            </p>
-          </form>
+        <div id="enquiry">
+          <EnquiryForm />
         </div>
-      </section>
+      </section> */}
 
       {/* Benefits / advantages */}
-      <section className="bg-[#021042]">
+      {/* <section className="bg-[#021042]">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-12 lg:py-16 grid gap-10 lg:grid-cols-2 items-start">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.25em] text-blue-200">
@@ -186,10 +90,10 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Reviews */}
-      <section className="bg-[#020b32]">
+      {/* <section className="bg-[#020b32]">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-12 lg:py-16 space-y-8">
           <div className="space-y-2 max-w-2xl">
             <h2 className="text-2xl sm:text-3xl font-extrabold">
@@ -229,14 +133,14 @@ export default function HomePage() {
             </article>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* FAQ */}
-      <section className="bg-[#020b32] pb-16">
+      {/* <section className="bg-[#020b32] pb-16">
         <div className="max-w-3xl mx-auto px-4 lg:px-0">
           <Faq />
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

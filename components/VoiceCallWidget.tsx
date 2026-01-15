@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Mic, MicOff, MessageSquare, X } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/utils/cn';
 
@@ -68,17 +68,16 @@ export default function VoiceCallWidget() {
 
       // Store call_id for later transcript fetching
       console.log('Call ID:', call_id);
+      callIdRef.current = call_id;
 
       // Dynamically import RetellWebClient (only works in browser)
       const { RetellWebClient } = await import('retell-client-js-sdk');
 
       // Initialize and start the call
       const client = new RetellWebClient();
-      // Store call_id in client for later use
-      (client as any).callId = call_id;
       clientRef.current = client;
 
-      // Set up event listeners with comprehensive logging
+      // Set up event listeners
       client.on('call_ready', () => {
         console.log('🎉 [EVENT] Call ready - WebRTC connection established');
       });
@@ -91,14 +90,13 @@ export default function VoiceCallWidget() {
       // Store call_id in a ref so polling can access it
       callIdRef.current = call_id;
       
-      // Helper function to process transcript_object array (defined before use)
+      // Helper function to process transcript_object array
       const processTranscriptObject = (transcriptObject: any[]) => {
         if (!Array.isArray(transcriptObject)) return;
         
         transcriptObject.forEach((utterance: any, index: number) => {
           console.log(`📝 Processing utterance ${index}:`, utterance);
           
-          // Handle different possible structures
           const role = utterance.role?.toLowerCase() === 'agent' ? 'agent' : 
                       utterance.role?.toLowerCase() === 'user' ? 'user' :
                       utterance.role?.toLowerCase() === 'assistant' ? 'agent' :
@@ -113,7 +111,6 @@ export default function VoiceCallWidget() {
           
           if (role && content) {
             setTranscript(prev => {
-              // Check if this exact message already exists anywhere in transcript
               const exactDuplicate = prev.some(msg => msg.role === role && msg.content === content);
               if (exactDuplicate) {
                 console.log('   ⏭ Skipping exact duplicate');
@@ -122,7 +119,6 @@ export default function VoiceCallWidget() {
               
               const lastMsg = prev[prev.length - 1];
               
-              // If same role and content is similar (partial update), replace last message
               if (
                 lastMsg?.role === role &&
                 (content.startsWith(lastMsg.content) || lastMsg.content.startsWith(content))
@@ -131,7 +127,6 @@ export default function VoiceCallWidget() {
                 return [...prev.slice(0, -1), { role, content, timestamp: new Date() }];
               }
               
-              // Add new message
               console.log('   ➕ Adding new message');
               return [
                 ...prev,
@@ -144,7 +139,7 @@ export default function VoiceCallWidget() {
         });
       };
 
-      // Helper function to process transcript string (defined before use)
+      // Helper function to process transcript string
       const processTranscriptString = (transcriptText: string) => {
         if (typeof transcriptText !== 'string') return;
         
@@ -154,7 +149,6 @@ export default function VoiceCallWidget() {
           let role: 'agent' | 'user' | null = null;
           let content = '';
           
-          // Match various formats
           const agentMatch = trimmed.match(/^(Agent|agent|🤖|Assistant|assistant):\s*(.+)/i);
           const userMatch = trimmed.match(/^(User|user|You|you|👤):\s*(.+)/i);
           
@@ -168,14 +162,12 @@ export default function VoiceCallWidget() {
           
           if (role && content) {
             setTranscript(prev => {
-              // Check if this exact message already exists anywhere in transcript
               const exactDuplicate = prev.some(msg => msg.role === role && msg.content === content);
               if (exactDuplicate) {
                 return prev;
               }
               
               const lastMsg = prev[prev.length - 1];
-              // If same role and similar content (partial update), replace last message
               if (
                 lastMsg?.role === role &&
                 (content.startsWith(lastMsg.content) || lastMsg.content.startsWith(content))
@@ -192,7 +184,7 @@ export default function VoiceCallWidget() {
         });
       };
       
-      // Set up polling to fetch transcript updates every 3 seconds during the call (backup mechanism)
+      // Set up polling to fetch transcript updates every 3 seconds during the call
       let isCallActive = true;
       let lastTranscriptLength = 0;
       const transcriptPollInterval = setInterval(async () => {
@@ -202,7 +194,6 @@ export default function VoiceCallWidget() {
             if (transcriptResponse.ok) {
               const callData = await transcriptResponse.json();
               
-              // Only process if we have transcript data and it's different from what we have
               if (callData.transcript_object && Array.isArray(callData.transcript_object)) {
                 if (callData.transcript_object.length > lastTranscriptLength) {
                   console.log('📊 [POLL] New transcript data found via polling:', callData.transcript_object.length, 'utterances');
@@ -210,7 +201,6 @@ export default function VoiceCallWidget() {
                   lastTranscriptLength = callData.transcript_object.length;
                 }
               } else if (callData.transcript && typeof callData.transcript === 'string') {
-                // If transcript string format, process it
                 processTranscriptString(callData.transcript);
               }
             }
@@ -220,10 +210,9 @@ export default function VoiceCallWidget() {
         } else {
           clearInterval(transcriptPollInterval);
         }
-      }, 3000); // Poll every 3 seconds
+      }, 3000);
       
       client.on('call_ended', async () => {
-        // Stop polling
         isCallActive = false;
         clearInterval(transcriptPollInterval);
         console.log('📊 [POLL] Polling stopped - call ended');
@@ -231,7 +220,6 @@ export default function VoiceCallWidget() {
         console.log('🔴 [EVENT] Call ended - fetching final transcript');
         setCallStatus('ended');
         
-        // Fetch final transcript from API after call ends
         if (callIdRef.current) {
           try {
             console.log('📥 Fetching final transcript for call:', callIdRef.current);
@@ -239,30 +227,20 @@ export default function VoiceCallWidget() {
             if (transcriptResponse.ok) {
               const callData = await transcriptResponse.json();
               console.log('📥 Final call data received:', callData);
-              console.log('📥 Call data keys:', Object.keys(callData));
               
-              // Process final transcript_object
               if (callData.transcript_object && Array.isArray(callData.transcript_object)) {
                 console.log('📥 Processing transcript_object with', callData.transcript_object.length, 'utterances');
                 processTranscriptObject(callData.transcript_object);
               }
               
-              // Also try transcript string format
               if (callData.transcript && typeof callData.transcript === 'string') {
                 console.log('📥 Processing transcript string');
                 processTranscriptString(callData.transcript);
               }
               
-              // Try transcript_with_tool_calls
               if (callData.transcript_with_tool_calls && Array.isArray(callData.transcript_with_tool_calls)) {
                 console.log('📥 Processing transcript_with_tool_calls');
                 processTranscriptObject(callData.transcript_with_tool_calls);
-              }
-              
-              // If still no transcript, log what we got
-              if (!callData.transcript_object && !callData.transcript && !callData.transcript_with_tool_calls) {
-                console.warn('📥 ⚠️ No transcript data found in final call response');
-                console.log('📥 Available fields:', Object.keys(callData));
               }
             } else {
               const errorText = await transcriptResponse.text();
@@ -271,8 +249,6 @@ export default function VoiceCallWidget() {
           } catch (err) {
             console.error('📥 Error fetching final transcript:', err);
           }
-        } else {
-          console.warn('📥 No call_id available to fetch transcript');
         }
         
         clientRef.current = null;
@@ -283,21 +259,19 @@ export default function VoiceCallWidget() {
         setError(error?.message || 'Call error occurred');
         setCallStatus('error');
         clientRef.current = null;
+        if (transcriptPollInterval) {
+          clearInterval(transcriptPollInterval);
+        }
       });
 
-
-      // Handle transcript updates - Based on working implementation
-      // Retell sends update.transcript as an ARRAY of fragments
+      // Handle transcript updates
       client.on('update', (update: any) => {
         console.log('📞 [EVENT] === UPDATE EVENT ===');
         console.log('📞 Full update object:', JSON.stringify(update, null, 2));
-        console.log('📞 Update keys:', Object.keys(update));
         
-        // The key insight: update.transcript is an ARRAY, not transcript_object!
         if (update.transcript && Array.isArray(update.transcript)) {
           console.log('📞 ✅ transcript array found with', update.transcript.length, 'fragments');
           
-          // Get the last fragment (most recent utterance)
           const fragment = update.transcript[update.transcript.length - 1];
           console.log('📞 Latest fragment:', fragment);
           
@@ -305,7 +279,6 @@ export default function VoiceCallWidget() {
             return;
           }
           
-          // Extract speaker/role and content/text from fragment
           const speaker = fragment.speaker || fragment.role || 'unknown';
           const text = fragment.content || fragment.text || '';
           
@@ -316,19 +289,15 @@ export default function VoiceCallWidget() {
             return;
           }
           
-          // Normalize speaker to 'agent' or 'user'
           const role = speaker.toLowerCase() === 'agent' || speaker.toLowerCase() === 'assistant' ? 'agent' : 'user';
           
-          // Update transcript - replace last message if same speaker, otherwise add new
           setTranscript(prev => {
             const lastIndex = prev.length - 1;
             const lastMsg = lastIndex >= 0 ? prev[lastIndex] : null;
             
-            // Check if this exact message already exists in the transcript (prevent duplicates)
             const exactDuplicate = prev.some(msg => msg.role === role && msg.content === text);
             if (exactDuplicate) {
               console.log('📞 ⏭ Skipping exact duplicate message');
-              // Clear current text since message is already finalized
               if (role === 'agent') {
                 setCurrentAgentText('');
               } else {
@@ -337,9 +306,7 @@ export default function VoiceCallWidget() {
               return prev;
             }
             
-            // If we have an ongoing entry for this speaker
             if (lastMsg && lastMsg.role === role) {
-              // If the content is exactly the same, it's finalized - clear current text
               if (lastMsg.content === text) {
                 console.log('📞 ✅ Message finalized, clearing live indicator');
                 if (role === 'agent') {
@@ -347,13 +314,11 @@ export default function VoiceCallWidget() {
                 } else {
                   setCurrentUserText('');
                 }
-                return prev; // No change needed, message already in transcript
+                return prev;
               } else {
-                // Content is different - partial update (still speaking)
                 console.log('📞 🔄 Partial update - updating last message');
                 const updated = [...prev];
                 updated[lastIndex] = { role, content: text, timestamp: new Date() };
-                // Keep current text for live indicator during partial updates
                 if (role === 'agent') {
                   setCurrentAgentText(text);
                 } else {
@@ -362,7 +327,6 @@ export default function VoiceCallWidget() {
                 return updated;
               }
             } else {
-              // Add new message (finalized) - clear current text since it's now in transcript
               console.log('📞 ➕ Adding new finalized message');
               if (role === 'agent') {
                 setCurrentAgentText('');
@@ -373,102 +337,42 @@ export default function VoiceCallWidget() {
             }
           });
         } else if (update.transcript_object && Array.isArray(update.transcript_object)) {
-          // Fallback: handle transcript_object if it exists
           console.log('📞 ✅ transcript_object found (fallback):', update.transcript_object);
           processTranscriptObject(update.transcript_object);
         } else if (update.transcript && typeof update.transcript === 'string') {
-          // Fallback: handle transcript string format
           console.log('📞 ✅ transcript string found (fallback):', update.transcript);
           processTranscriptString(update.transcript);
-        } else {
-          console.log('📞 ⚠️ No transcript data found in update event');
-          console.log('📞 Available fields:', Object.keys(update));
         }
       });
 
-      // Listen for agent talking events
       client.on('agent_start_talking', () => {
         console.log('🎤 [EVENT] Agent started talking');
       });
 
       client.on('agent_stop_talking', () => {
         console.log('🎤 [EVENT] Agent stopped talking');
-        // Clear current agent text - the message should already be in transcript from update events
-        // Only add if it's not already there (safety check)
         if (currentAgentText) {
           setTranscript(prev => {
-            // Check if this exact message already exists in transcript
             const exists = prev.some(msg => msg.role === 'agent' && msg.content === currentAgentText);
             if (exists) {
               console.log('🎤 ⏭ Message already in transcript, skipping duplicate');
               return prev;
             }
             
-            // Only add if it's truly new (shouldn't happen if update events are working)
             const lastIndex = prev.length - 1;
             if (lastIndex >= 0 && prev[lastIndex].role === 'agent') {
-              // If last message is from agent but different content, update it
               if (prev[lastIndex].content !== currentAgentText) {
                 const updated = [...prev];
                 updated[lastIndex] = { role: 'agent', content: currentAgentText, timestamp: new Date() };
                 return updated;
               }
-              // Same content, no change needed
               return prev;
             } else {
-              // No agent message yet, add it
               return [...prev, { role: 'agent', content: currentAgentText, timestamp: new Date() }];
             }
           });
           setCurrentAgentText('');
         }
-      });
-
-      // Listen for metadata events - may contain transcript data
-      client.on('metadata', (metadata: any) => {
-        console.log('📋 [EVENT] Metadata received:', metadata);
-        console.log('📋 Metadata keys:', Object.keys(metadata));
-        
-        // Check if metadata contains transcript array (same structure as update events)
-        if (metadata.transcript && Array.isArray(metadata.transcript)) {
-          console.log('📋 ✅ Metadata contains transcript array with', metadata.transcript.length, 'fragments');
-          const fragment = metadata.transcript[metadata.transcript.length - 1];
-          if (fragment) {
-            const speaker = fragment.speaker || fragment.role || 'unknown';
-            const text = fragment.content || fragment.text || '';
-            if (speaker && text) {
-              const role = speaker.toLowerCase() === 'agent' || speaker.toLowerCase() === 'assistant' ? 'agent' : 'user';
-              setTranscript(prev => {
-                // Check if this exact message already exists
-                const exactDuplicate = prev.some(msg => msg.role === role && msg.content === text);
-                if (exactDuplicate) {
-                  console.log('📋 ⏭ Skipping duplicate from metadata');
-                  return prev;
-                }
-                
-                const lastIndex = prev.length - 1;
-                if (lastIndex >= 0 && prev[lastIndex].role === role) {
-                  const updated = [...prev];
-                  updated[lastIndex] = { role, content: text, timestamp: new Date() };
-                  return updated;
-                } else {
-                  return [...prev, { role, content: text, timestamp: new Date() }];
-                }
-              });
-            }
-          }
-        } else if (metadata.transcript_object) {
-          console.log('📋 Metadata contains transcript_object:', metadata.transcript_object);
-          processTranscriptObject(metadata.transcript_object);
-        } else if (metadata.transcript && typeof metadata.transcript === 'string') {
-          console.log('📋 Metadata contains transcript string:', metadata.transcript);
-          processTranscriptString(metadata.transcript);
-        }
-      });
-
-      // Listen for node_transition events
-      client.on('node_transition', (transition: any) => {
-        console.log('🔄 [EVENT] Node transition:', transition);
       });
 
       // Start the call
@@ -493,7 +397,6 @@ export default function VoiceCallWidget() {
     setCallStatus('ended');
     setIsMuted(false);
     setError(null);
-    // Keep modal open to show transcript
   };
 
   const closeModal = () => {
@@ -529,107 +432,104 @@ export default function VoiceCallWidget() {
 
   return (
     <>
-      {/* Call Modal - Opens when call button is clicked */}
+      {/* Full-Screen Call Modal */}
       {showCallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-2xl border border-zinc-200 dark:border-zinc-800 w-[90vw] max-w-[600px] h-[85vh] max-h-[700px] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-3 h-3 rounded-full",
-                  callStatus === 'connected' ? "bg-green-500 animate-pulse" :
-                  callStatus === 'connecting' ? "bg-yellow-500 animate-pulse" :
-                  "bg-gray-400"
-                )}></div>
-                <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">
-                  {callStatus === 'connecting' ? 'Connecting...' :
-                   callStatus === 'connected' ? 'Call Active' :
-                   callStatus === 'ended' ? 'Call Ended' :
-                   'Voice Call'}
-                </h3>
-              </div>
-              <Button
-                onClick={closeModal}
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-              >
-                <X className="w-5 h-5" />
-              </Button>
+        <div className="fixed inset-0 z-50 bg-white dark:bg-zinc-900 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-3 h-3 rounded-full",
+                callStatus === 'connected' ? "bg-green-500 animate-pulse" :
+                callStatus === 'connecting' ? "bg-yellow-500 animate-pulse" :
+                "bg-gray-400"
+              )}></div>
+              <h3 className="font-semibold text-xl text-zinc-900 dark:text-zinc-100">
+                {callStatus === 'connecting' ? 'Connecting...' :
+                 callStatus === 'connected' ? 'Call Active' :
+                 callStatus === 'ended' ? 'Call Ended' :
+                 'Voice Call'}
+              </h3>
             </div>
+            <Button
+              onClick={closeModal}
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
 
-            {/* Transcript Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {transcript.length === 0 && currentAgentText === '' && currentUserText === '' ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-                    {callStatus === 'connecting' ? 'Connecting to agent...' : 'Waiting for conversation to start...'}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {transcript.map((msg, index) => (
+          {/* Transcript Content - Full Screen */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {transcript.length === 0 && currentAgentText === '' && currentUserText === '' ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                  {callStatus === 'connecting' ? 'Connecting to agent...' : 'Waiting for conversation to start...'}
+                </p>
+              </div>
+            ) : (
+              <>
+                {transcript.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      'flex flex-col gap-1',
+                      msg.role === 'agent' ? 'items-start' : 'items-end'
+                    )}
+                  >
                     <div
-                      key={index}
                       className={cn(
-                        'flex flex-col gap-1',
-                        msg.role === 'agent' ? 'items-start' : 'items-end'
+                        'rounded-lg px-4 py-3 max-w-[75%] shadow-sm',
+                        msg.role === 'agent'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-zinc-900 dark:text-zinc-100 border border-blue-200 dark:border-blue-800'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700'
                       )}
                     >
-                      <div
-                        className={cn(
-                          'rounded-lg px-4 py-3 max-w-[75%] shadow-sm',
-                          msg.role === 'agent'
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-zinc-900 dark:text-zinc-100 border border-blue-200 dark:border-blue-800'
-                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700'
-                        )}
-                      >
-                        <div className="text-xs font-semibold mb-1.5 opacity-80">
-                          {msg.role === 'agent' ? '🤖 Agent' : '👤 You'}
-                        </div>
-                        <div className="text-sm leading-relaxed">{msg.content}</div>
+                      <div className="text-xs font-semibold mb-1.5 opacity-80">
+                        {msg.role === 'agent' ? '🤖 Agent' : '👤 You'}
                       </div>
-                      <div className="text-xs text-zinc-400 dark:text-zinc-500 px-2">
-                        {msg.timestamp.toLocaleTimeString()}
+                      <div className="text-sm leading-relaxed">{msg.content}</div>
+                    </div>
+                    <div className="text-xs text-zinc-400 dark:text-zinc-500 px-2">
+                      {msg.timestamp.toLocaleTimeString()}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Current speaking indicators */}
+                {currentAgentText && (() => {
+                  const lastAgentMsg = transcript.filter(msg => msg.role === 'agent').pop();
+                  if (lastAgentMsg && lastAgentMsg.content === currentAgentText) {
+                    return null;
+                  }
+                  return (
+                    <div className="flex flex-col gap-1 items-start">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-3 max-w-[75%] border-2 border-blue-300 dark:border-blue-700 shadow-sm">
+                        <div className="text-xs font-semibold mb-1.5 text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                          <span>🤖 Agent</span>
+                          <span className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                          </span>
+                        </div>
+                        <div className="text-sm text-zinc-900 dark:text-zinc-100 leading-relaxed">
+                          {currentAgentText}
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                })()}
 
-                  {/* Current speaking indicators - only show if different from last message */}
-                  {currentAgentText && (() => {
-                    const lastAgentMsg = transcript.filter(msg => msg.role === 'agent').pop();
-                    // Only show if it's different from the last agent message (partial update)
-                    if (lastAgentMsg && lastAgentMsg.content === currentAgentText) {
-                      return null; // Don't show duplicate
-                    }
-                    return (
-                      <div className="flex flex-col gap-1 items-start">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-3 max-w-[75%] border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-                          <div className="text-xs font-semibold mb-1.5 text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                            <span>🤖 Agent</span>
-                            <span className="flex gap-1">
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
-                            </span>
-                          </div>
-                          <div className="text-sm text-zinc-900 dark:text-zinc-100 leading-relaxed">
-                            {currentAgentText}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {currentUserText && (() => {
-                    const lastUserMsg = transcript.filter(msg => msg.role === 'user').pop();
-                    // Only show if it's different from the last user message (partial update)
-                    if (lastUserMsg && lastUserMsg.content === currentUserText) {
-                      return null; // Don't show duplicate
-                    }
-                    return (
+                {currentUserText && (() => {
+                  const lastUserMsg = transcript.filter(msg => msg.role === 'user').pop();
+                  if (lastUserMsg && lastUserMsg.content === currentUserText) {
+                    return null;
+                  }
+                  return (
                     <div className="flex flex-col gap-1 items-end">
                       <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg px-4 py-3 max-w-[75%] border-2 border-zinc-400 dark:border-zinc-600 shadow-sm">
                         <div className="text-xs font-semibold mb-1.5 text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
@@ -645,76 +545,94 @@ export default function VoiceCallWidget() {
                         </div>
                       </div>
                     </div>
-                    );
-                  })()}
+                  );
+                })()}
 
-                  <div ref={transcriptEndRef} />
-                </>
-              )}
-            </div>
+                <div ref={transcriptEndRef} />
+              </>
+            )}
+          </div>
 
-            {/* Call Controls Footer */}
-            <div className="border-t border-zinc-200 dark:border-zinc-800 p-4">
-              <div className="flex gap-3 justify-center">
-                <Button
-                  onClick={toggleMute}
-                  variant={isMuted ? "destructive" : "outline"}
-                  size="lg"
-                  className="flex-1 max-w-[150px]"
-                  disabled={callStatus !== 'connected'}
-                >
-                  {isMuted ? (
-                    <>
-                      <MicOff className="w-5 h-5 mr-2" />
-                      Unmute
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-5 h-5 mr-2" />
-                      Mute
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={callStatus === 'ended' ? closeModal : endCall}
-                  variant="destructive"
-                  size="lg"
-                  className="flex-1 max-w-[150px]"
-                  disabled={callStatus !== 'connected' && callStatus !== 'ended'}
-                >
-                  <PhoneOff className="w-5 h-5 mr-2" />
-                  {callStatus === 'ended' ? 'Close' : 'End Call'}
-                </Button>
-              </div>
+          {/* Call Controls Footer */}
+          <div className="border-t border-zinc-200 dark:border-zinc-800 p-6">
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={toggleMute}
+                variant={isMuted ? "destructive" : "outline"}
+                size="lg"
+                className="flex-1 max-w-[200px]"
+                disabled={callStatus !== 'connected'}
+              >
+                {isMuted ? (
+                  <>
+                    <MicOff className="w-5 h-5 mr-2" />
+                    Unmute
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5 mr-2" />
+                    Mute
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={callStatus === 'ended' ? closeModal : endCall}
+                variant="destructive"
+                size="lg"
+                className="flex-1 max-w-[200px]"
+                disabled={callStatus !== 'connected' && callStatus !== 'ended'}
+              >
+                <PhoneOff className="w-5 h-5 mr-2" />
+                {callStatus === 'ended' ? 'Close' : 'End Call'}
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Floating Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-
-        <Button
-          onClick={callStatus === 'idle' || callStatus === 'error' || callStatus === 'ended' ? startCall : () => setShowCallModal(true)}
-          className={cn(
-            'rounded-full w-16 h-16 shadow-xl transition-all hover:scale-110',
-            callStatus === 'connecting'
-              ? 'bg-blue-600 hover:bg-blue-700 animate-pulse'
-              : callStatus === 'connected'
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          )}
-          disabled={callStatus === 'connecting'}
-        >
-          {callStatus === 'connecting' ? (
-            <div className="w-7 h-7 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : callStatus === 'connected' ? (
-            <Phone className="w-7 h-7 text-white" />
-          ) : (
-            <Phone className="w-7 h-7 text-white" />
-          )}
-        </Button>
-      </div>
+      {/* Full-Screen "Make a Call" Button - Only shown when modal is closed */}
+      {!showCallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020b32]">
+          <button
+            onClick={startCall}
+            disabled={callStatus === 'connecting'}
+            className={cn(
+              'w-full h-full flex flex-col items-center justify-center gap-4 transition-all',
+              callStatus === 'connecting'
+                ? 'bg-blue-600 hover:bg-blue-700 animate-pulse cursor-wait'
+                : callStatus === 'error'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-[#00a7ff] hover:bg-[#0090d9] cursor-pointer'
+            )}
+          >
+            {callStatus === 'connecting' ? (
+              <>
+                <div className="w-20 h-20 border-8 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-white text-xl font-semibold">Connecting...</span>
+              </>
+            ) : callStatus === 'error' ? (
+              <>
+                <Phone className="w-24 h-24 text-white" />
+                <span className="text-white text-xl font-semibold">Call Failed</span>
+                {error && <span className="text-white/80 text-sm">{error}</span>}
+                <span className="text-white/60 text-sm mt-2">Click to try again</span>
+              </>
+            ) : callStatus === 'ended' ? (
+              <>
+                <Phone className="w-24 h-24 text-white" />
+                <span className="text-white text-xl font-semibold">Call Ended</span>
+                <span className="text-white/60 text-sm mt-2">Click to start a new call</span>
+              </>
+            ) : (
+              <>
+                <Phone className="w-24 h-24 text-white" />
+                <span className="text-white text-2xl font-bold">Make a Call</span>
+                <span className="text-white/80 text-base">Click to start</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </>
   );
 }

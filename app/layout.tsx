@@ -16,8 +16,8 @@ const fontSans = FontSans({
 });
 
 const meta = {
-  title: 'SaaS starter',
-  description: 'AI SaaS starter kit',
+  title: 'CoolBreeze Climate Solutions - Expert Heat Pump Installation',
+  description: 'Transform your property with an Air Source Heat Pump. Expert survey, design and installation. Reduce energy bills and your carbon footprint.',
   cardImage: '/og.png',
   robots: 'follow, index',
   favicon: '/favicon.ico',
@@ -29,10 +29,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: meta.title,
     description: meta.description,
     referrer: 'origin-when-cross-origin',
-    keywords: ['saas', 'ai'],
-    authors: [{ name: 'Author Name', url: 'author_url' }],
-    creator: 'Creator',
-    publisher: 'Publisher',
+    keywords: ['heat pump', 'HVAC', 'air source heat pump', 'climate solutions', 'heating', 'cooling', 'energy efficiency'],
+    authors: [{ name: 'CoolBreeze Climate Solutions', url: getURL() }],
+    creator: 'CoolBreeze Climate Solutions',
+    publisher: 'CoolBreeze Climate Solutions',
     robots: meta.robots,
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url),

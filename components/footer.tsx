@@ -13,7 +13,7 @@ export default function Footer() {
             <span className="mr-2">
               <Image src="/logo.png" width={45} height={45} alt="logo" />
             </span>
-            <span className="text-sm">Company Name</span>
+            <span className="text-sm">CoolBreeze Climate Solutions</span>
           </Link>
         </div>
         <div className="col-span-1 lg:col-span-2">
@@ -81,7 +81,7 @@ export default function Footer() {
       <div className="flex flex-col items-center justify-between py-12 space-y-4 md:flex-row ">
         <div>
           <span>
-            &copy; {new Date().getFullYear()} Company Name, Inc. All rights
+            &copy; {new Date().getFullYear()} CoolBreeze Climate Solutions. All rights
             reserved.
           </span>
         </div>

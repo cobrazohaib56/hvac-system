@@ -1,11 +1,12 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+// Supabase removed
+// import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getURL, getErrorRedirect, getStatusRedirect } from 'utils/helpers';
 import { getAuthTypes } from 'utils/auth-helpers/settings';
-import { Database } from '@/types_db';
+// import { Database } from '@/types_db';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -19,16 +20,9 @@ export async function redirectToPath(path: string) {
 export async function SignOut(formData: FormData) {
   const pathName = String(formData.get('pathName')).trim();
 
-  const supabase = createClient();
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    return getErrorRedirect(
-      pathName,
-      'Hmm... Something went wrong.',
-      'You could not be signed out.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { error } = await supabase.auth.signOut();
 
   return '/signin';
 }
@@ -48,41 +42,15 @@ export async function signInWithEmail(formData: FormData) {
     );
   }
 
-  const supabase = createClient();
-  let options = {
-    emailRedirectTo: callbackURL,
-    shouldCreateUser: true
-  };
-
-  // If allowPassword is false, do not create a new user
-  const { allowPassword } = getAuthTypes();
-  if (allowPassword) options.shouldCreateUser = false;
-  const { data, error } = await supabase.auth.signInWithOtp({
-    email,
-    options: options
-  });
-
-  if (error) {
-    redirectPath = getErrorRedirect(
-      '/signin/email_signin',
-      'You could not be signed in.',
-      error.message
-    );
-  } else if (data) {
-    cookieStore.set('preferredSignInView', 'email_signin', { path: '/' });
-    redirectPath = getStatusRedirect(
-      '/signin/email_signin',
-      'Success!',
-      'Please check your email for a magic link. You may now close this tab.',
-      true
-    );
-  } else {
-    redirectPath = getErrorRedirect(
-      '/signin/email_signin',
-      'Hmm... Something went wrong.',
-      'You could not be signed in.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { data, error } = await supabase.auth.signInWithOtp({...});
+  
+  redirectPath = getErrorRedirect(
+    '/signin/email_signin',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
+  );
 
   return redirectPath;
 }
@@ -102,32 +70,15 @@ export async function requestPasswordUpdate(formData: FormData) {
     );
   }
 
-  const supabase = createClient();
-
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: callbackURL
-  });
-
-  if (error) {
-    redirectPath = getErrorRedirect(
-      '/signin/forgot_password',
-      error.message,
-      'Please try again.'
-    );
-  } else if (data) {
-    redirectPath = getStatusRedirect(
-      '/signin/forgot_password',
-      'Success!',
-      'Please check your email for a password reset link. You may now close this tab.',
-      true
-    );
-  } else {
-    redirectPath = getErrorRedirect(
-      '/signin/forgot_password',
-      'Hmm... Something went wrong.',
-      'Password reset email could not be sent.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { data, error } = await supabase.auth.resetPasswordForEmail(...);
+  
+  redirectPath = getErrorRedirect(
+    '/signin/forgot_password',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
+  );
 
   return redirectPath;
 }
@@ -138,28 +89,15 @@ export async function signInWithPassword(formData: FormData) {
   const password = String(formData.get('password')).trim();
   let redirectPath: string;
 
-  const supabase = createClient();
-  const { error, data } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    redirectPath = getErrorRedirect(
-      '/signin/password_signin',
-      'Sign in failed.',
-      error.message
-    );
-  } else if (data.user) {
-    cookieStore.set('preferredSignInView', 'password_signin', { path: '/' });
-    redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
-  } else {
-    redirectPath = getErrorRedirect(
-      '/signin/password_signin',
-      'Hmm... Something went wrong.',
-      'You could not be signed in.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { error, data } = await supabase.auth.signInWithPassword({...});
+  
+  redirectPath = getErrorRedirect(
+    '/signin/password_signin',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
+  );
 
   return redirectPath;
 }
@@ -179,46 +117,15 @@ export async function signUp(formData: FormData) {
     );
   }
 
-  const supabase = createClient();
-  const { error, data } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: callbackURL
-    }
-  });
-
-  if (error) {
-    redirectPath = getErrorRedirect(
-      '/signin/signup',
-      'Sign up failed.',
-      error.message
-    );
-  } else if (data.session) {
-    redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
-  } else if (
-    data.user &&
-    data.user.identities &&
-    data.user.identities.length == 0
-  ) {
-    redirectPath = getErrorRedirect(
-      '/signin/signup',
-      'Sign up failed.',
-      'There is already an account associated with this email address. Try resetting your password.'
-    );
-  } else if (data.user) {
-    redirectPath = getStatusRedirect(
-      '/',
-      'Success!',
-      'Please check your email for a confirmation link. You may now close this tab.'
-    );
-  } else {
-    redirectPath = getErrorRedirect(
-      '/signin/signup',
-      'Hmm... Something went wrong.',
-      'You could not be signed up.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { error, data } = await supabase.auth.signUp({...});
+  
+  redirectPath = getErrorRedirect(
+    '/signin/signup',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
+  );
 
   return redirectPath;
 }
@@ -237,30 +144,15 @@ export async function updatePassword(formData: FormData) {
     );
   }
 
-  const supabase = createClient();
-  const { error, data } = await supabase.auth.updateUser({
-    password
-  });
-
-  if (error) {
-    redirectPath = getErrorRedirect(
-      '/signin/update_password',
-      'Your password could not be updated.',
-      error.message
-    );
-  } else if (data.user) {
-    redirectPath = getStatusRedirect(
-      '/',
-      'Success!',
-      'Your password has been updated.'
-    );
-  } else {
-    redirectPath = getErrorRedirect(
-      '/signin/update_password',
-      'Hmm... Something went wrong.',
-      'Your password could not be updated.'
-    );
-  }
+  // Supabase removed
+  // const supabase = createClient();
+  // const { error, data } = await supabase.auth.updateUser({...});
+  
+  redirectPath = getErrorRedirect(
+    '/signin/update_password',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
+  );
 
   return redirectPath;
 }
@@ -278,32 +170,15 @@ export async function updateEmail(formData: FormData) {
     );
   }
 
-  const supabase = createClient();
-
-  const callbackUrl = getURL(
-    getStatusRedirect('/account', 'Success!', `Your email has been updated.`)
+  // Supabase removed
+  // const supabase = createClient();
+  // const { error } = await supabase.auth.updateUser({...});
+  
+  return getErrorRedirect(
+    '/account',
+    'Authentication disabled',
+    'Supabase has been removed from this project.'
   );
-
-  const { error } = await supabase.auth.updateUser(
-    { email: newEmail },
-    {
-      emailRedirectTo: callbackUrl
-    }
-  );
-
-  if (error) {
-    return getErrorRedirect(
-      '/account',
-      'Your email could not be updated.',
-      error.message
-    );
-  } else {
-    return getStatusRedirect(
-      '/account',
-      'Confirmation emails sent.',
-      `You will need to confirm the update by clicking the links sent to both the old and new email addresses.`
-    );
-  }
 }
 
 export async function updateName(formData: FormData) {
@@ -312,26 +187,15 @@ export async function updateName(formData: FormData) {
     const fullName = String(formData.get('fullName')).trim();
     const userId = String(formData.get('userId')).trim();
     console.log(userId);
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('users')
-      // @ts-expect-error - Supabase type inference issue
-      .update({ full_name: fullName })
-      .eq('id', userId);
-
-    if (error) {
-      return getErrorRedirect(
-        '/account',
-        'Your name could not be updated.',
-        error.message
-      );
-    } else {
-      return getStatusRedirect(
-        '/account',
-        'Success!',
-        'Your name has been updated.'
-      );
-    }
+    // Supabase removed
+    // const supabase = createClient();
+    // const { data, error } = await supabase.from('users').update({...});
+    
+    return getErrorRedirect(
+      '/account',
+      'Database disabled',
+      'Supabase has been removed from this project.'
+    );
   } catch (error) {
     return getErrorRedirect(
       '/account',

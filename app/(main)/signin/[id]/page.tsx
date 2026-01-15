@@ -1,4 +1,5 @@
-import { createClient } from '@/utils/supabase/server';
+// Supabase removed
+// import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
@@ -41,17 +42,14 @@ export default async function SignIn({
     return redirect(`/signin/${viewProp}`);
   }
 
-  // Check if the user is already logged in and redirect to the account page if so
-  const supabase = createClient();
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-
-  if (session && viewProp !== 'update_password') {
-    return redirect('/');
-  } else if (!session && viewProp === 'update_password') {
-    return redirect('/signin');
-  }
+  // Supabase removed - session check disabled
+  // const supabase = createClient();
+  // const { data: { session } } = await supabase.auth.getSession();
+  // if (session && viewProp !== 'update_password') {
+  //   return redirect('/');
+  // } else if (!session && viewProp === 'update_password') {
+  //   return redirect('/signin');
+  // }
 
   return (
     <div className="flex justify-center height-screen-helper">

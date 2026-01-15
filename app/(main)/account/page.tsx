@@ -1,38 +1,18 @@
 import CustomerPortalForm from '@/components/AccountForms/CustomerPortalForm';
 import EmailForm from '@/components/AccountForms/EmailForm';
 import NameForm from '@/components/AccountForms/NameForm';
-import { createClient } from '@/utils/supabase/server';
+// import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import Avatar from '@/components/avatar';
-import { Database } from '@/types_db';
+// import { Database } from '@/types_db';
 
 export default async function Account() {
-  const supabase = createClient();
-
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect('/signin');
-  }
-
-  const { data: userDetailsRaw } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle();
-  
-  const userDetails = userDetailsRaw as Database['public']['Tables']['users']['Row'] | null;
-  const { data: subscription, error } = await supabase
-    .from('subscriptions')
-    .select('*, prices(*, products(*))')
-    .in('status', ['trialing', 'active'])
-    .maybeSingle();
-
-  if (error) {
-    console.log(error);
-  }
+  // Supabase removed - returning empty account page
+  // const supabase = createClient();
+  // const { data: { user } } = await supabase.auth.getUser();
+  // if (!user) {
+  //   return redirect('/signin');
+  // }
 
   return (
     <section className="mb-32">
@@ -44,13 +24,13 @@ export default async function Account() {
         </div>
       </div>
       <div className="p-4 flex flex-col items-center">
-        <Avatar uid={user?.id ?? null} size={150} />
-        <CustomerPortalForm subscription={subscription} />
+        <Avatar uid={null} size={150} />
+        <CustomerPortalForm subscription={null} />
         <NameForm
-          userName={userDetails?.full_name ?? ''}
-          userId={userDetails?.id ?? ''}
+          userName={''}
+          userId={''}
         />
-        <EmailForm userEmail={user.email} />
+        <EmailForm userEmail={undefined} />
       </div>
     </section>
   );

@@ -1,92 +1,38 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+// import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Database } from '@/types_db';
+// import { Database } from '@/types_db';
 
-export default function Avatar({ uid, size }: { uid: string; size: number }) {
-  const supabase = createClient();
+export default function Avatar({ uid, size }: { uid: string | null; size: number }) {
+  // Supabase removed
+  // const supabase = createClient();
   const [avatarUrl, setAvatarUrl] = useState<string | null>('');
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    async function getUser() {
-      try {
-        let { data: dataRaw, error } = await supabase
-          .from('users')
-          .select('avatar_url')
-          .eq('id', uid)
-          .single();
-
-        const data = dataRaw as Pick<Database['public']['Tables']['users']['Row'], 'avatar_url'> | null;
-
-        if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    getUser();
-  }, []);
+  // useEffect(() => {
+  //   async function getUser() {
+  //     // Supabase removed
+  //   }
+  //   getUser();
+  // }, []);
 
   const uploadAvatar: React.ChangeEventHandler<HTMLInputElement> = async (
     event
   ) => {
-    try {
-      setUploading(true);
-
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
-      }
-
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${uid}-${Math.random()}.${fileExt}`;
-
-      const { data, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      if (data) {
-        setUrl(data.path);
-      }
-    } catch (error) {
-      alert('Error uploading avatar!');
-    } finally {
-      setUploading(false);
-    }
+    // Supabase removed - upload functionality disabled
+    alert('Avatar upload disabled - Supabase removed');
   };
 
-  async function setUrl(path: string) {
-    const { data } = await supabase.storage
-      .from('avatars')
-      .createSignedUrl(path, 60);
+  // async function setUrl(path: string) {
+  //   // Supabase removed
+  // }
 
-    if (data) {
-      updateAvatar(data.signedUrl);
-    }
-  }
-
-  async function updateAvatar(avatar_url: string | null) {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        // @ts-expect-error - Supabase type inference issue
-        .update({ avatar_url })
-        .eq('id', uid);
-      if (error) throw error;
-      setAvatarUrl(avatar_url);
-    } catch (error) {
-      alert('Error updating the data!');
-    }
-  }
+  // async function updateAvatar(avatar_url: string | null) {
+  //   // Supabase removed
+  // }
 
   return (
     <div>

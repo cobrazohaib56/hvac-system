@@ -1,18 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { Tables } from '@/types_db';
+// import type { Tables } from '@/types_db';
 import { getStripe } from '@/utils/stripe/client';
 import { checkoutWithStripe } from '@/utils/stripe/server';
 import { getErrorRedirect } from '@/utils/helpers';
-import { User } from '@supabase/supabase-js';
+// Supabase removed
+// import { User } from '@supabase/supabase-js';
 import cn from 'classnames';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-type Subscription = Tables<'subscriptions'>;
-type Product = Tables<'products'>;
-type Price = Tables<'prices'>;
+type Subscription = any; // Tables<'subscriptions'>;
+type Product = any; // Tables<'products'>;
+type Price = any; // Tables<'prices'>;
 interface ProductWithPrices extends Product {
   prices: Price[];
 }
@@ -24,7 +25,7 @@ interface SubscriptionWithProduct extends Subscription {
 }
 
 interface Props {
-  user: User | null | undefined;
+  user: any | null | undefined; // User | null | undefined;
   products: ProductWithPrices[];
   subscription: SubscriptionWithProduct | null;
 }

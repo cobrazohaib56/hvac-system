@@ -122,7 +122,7 @@ const PrivacyPolicy = () => {
         <h2 className="text-xl font-semibold mt-4">8. Contact Us</h2>
         <p>
           If you have questions or comments about this policy, you may email us
-          at [Contact Information] or by post to [Your Company Name], [Address].
+          at [Contact Information] or by post to CoolBreeze Climate Solutions, [Address].
         </p>
       </div>
     </div>

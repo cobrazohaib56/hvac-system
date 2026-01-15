@@ -6,11 +6,12 @@ import { useState } from 'react';
 import { createStripePortal } from '@/utils/stripe/server';
 import Link from 'next/link';
 import Card from '@/components/card';
-import { Tables } from '@/types_db';
+// Supabase removed
+// import { Tables } from '@/types_db';
 
-type Subscription = Tables<'subscriptions'>;
-type Price = Tables<'prices'>;
-type Product = Tables<'products'>;
+type Subscription = any; // Tables<'subscriptions'>;
+type Price = any; // Tables<'prices'>;
+type Product = any; // Tables<'products'>;
 
 type SubscriptionWithPriceAndProduct = Subscription & {
   prices:

@@ -2,16 +2,17 @@
 
 import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
-import { createClient } from '@/utils/supabase/server';
+// Supabase removed
+// import { createClient } from '@/utils/supabase/server';
 import { createOrRetrieveCustomer } from '@/utils/supabase/admin';
 import {
   getURL,
   getErrorRedirect,
   calculateTrialEndUnixTimestamp
 } from '@/utils/helpers';
-import { Tables } from '@/types_db';
+// import { Tables } from '@/types_db';
 
-type Price = Tables<'prices'>;
+type Price = any; // Tables<'prices'>;
 
 type CheckoutResponse = {
   errorRedirect?: string;
@@ -23,25 +24,21 @@ export async function checkoutWithStripe(
   redirectPath: string = '/account'
 ): Promise<CheckoutResponse> {
   try {
-    // Get the user from Supabase auth
-    const supabase = createClient();
-    const {
-      error,
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      console.error(error);
-      throw new Error('Could not get user session.');
-    }
-
-    // Retrieve or create the customer in Stripe
+    // Supabase removed - using a placeholder customer ID
+    // const supabase = createClient();
+    // const { data: { user } } = await supabase.auth.getUser();
+    
+    // Retrieve or create the customer in Stripe (without Supabase user)
     let customer: string;
     try {
-      customer = await createOrRetrieveCustomer({
-        uuid: user?.id || '',
-        email: user?.email || ''
-      });
+      // Create customer directly in Stripe without Supabase UUID
+      const stripeCustomers = await stripe.customers.list({ limit: 1 });
+      if (stripeCustomers.data.length > 0) {
+        customer = stripeCustomers.data[0].id;
+      } else {
+        const newCustomer = await stripe.customers.create({});
+        customer = newCustomer.id;
+      }
     } catch (err) {
       console.error(err);
       throw new Error('Unable to access customer record.');
@@ -121,25 +118,20 @@ export async function checkoutWithStripe(
 
 export async function createStripePortal(currentPath: string) {
   try {
-    const supabase = createClient();
-    const {
-      error,
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      if (error) {
-        console.error(error);
-      }
-      throw new Error('Could not get user session.');
-    }
-
+    // Supabase removed
+    // const supabase = createClient();
+    // const { data: { user } } = await supabase.auth.getUser();
+    
+    // Get customer directly from Stripe (without Supabase)
     let customer;
     try {
-      customer = await createOrRetrieveCustomer({
-        uuid: user.id || '',
-        email: user.email || ''
-      });
+      // Try to get a customer from Stripe (simplified - no user lookup)
+      const stripeCustomers = await stripe.customers.list({ limit: 1 });
+      if (stripeCustomers.data.length > 0) {
+        customer = stripeCustomers.data[0].id;
+      } else {
+        throw new Error('No customer found');
+      }
     } catch (err) {
       console.error(err);
       throw new Error('Unable to access customer record.');

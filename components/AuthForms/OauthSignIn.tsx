@@ -2,12 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { signInWithOAuth } from '@/utils/auth-helpers/client';
-import { type Provider } from '@supabase/supabase-js';
+// Supabase removed
+// import { type Provider } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { useState } from 'react';
 
 type OAuthProviders = {
-  name: Provider;
+  name: string; // Provider;
   displayName: string;
 };
 
