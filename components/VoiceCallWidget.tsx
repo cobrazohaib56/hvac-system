@@ -26,6 +26,8 @@ export default function VoiceCallWidget() {
   const clientRef = useRef<any>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const callIdRef = useRef<string | null>(null);
+  const transcriptPollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isCallActiveRef = useRef<boolean>(false);
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on the client side
@@ -185,10 +187,10 @@ export default function VoiceCallWidget() {
       };
       
       // Set up polling to fetch transcript updates every 3 seconds during the call
-      let isCallActive = true;
+      isCallActiveRef.current = true;
       let lastTranscriptLength = 0;
-      const transcriptPollInterval = setInterval(async () => {
-        if (isCallActive && callIdRef.current) {
+      transcriptPollIntervalRef.current = setInterval(async () => {
+        if (isCallActiveRef.current && callIdRef.current) {
           try {
             const transcriptResponse = await fetch(`/api/retell-web-call/${callIdRef.current}`);
             if (transcriptResponse.ok) {
@@ -208,14 +210,20 @@ export default function VoiceCallWidget() {
             console.error('📊 [POLL] Error polling transcript:', err);
           }
         } else {
-          clearInterval(transcriptPollInterval);
+          if (transcriptPollIntervalRef.current) {
+            clearInterval(transcriptPollIntervalRef.current);
+            transcriptPollIntervalRef.current = null;
+          }
         }
       }, 3000);
       
       client.on('call_ended', async () => {
-        isCallActive = false;
-        clearInterval(transcriptPollInterval);
-        console.log('📊 [POLL] Polling stopped - call ended');
+        isCallActiveRef.current = false;
+        if (transcriptPollIntervalRef.current) {
+          clearInterval(transcriptPollIntervalRef.current);
+          transcriptPollIntervalRef.current = null;
+          console.log('📊 [POLL] Polling stopped - call ended');
+        }
         
         console.log('🔴 [EVENT] Call ended - fetching final transcript');
         setCallStatus('ended');
@@ -258,9 +266,11 @@ export default function VoiceCallWidget() {
         console.error('Retell call error:', error);
         setError(error?.message || 'Call error occurred');
         setCallStatus('error');
+        isCallActiveRef.current = false;
         clientRef.current = null;
-        if (transcriptPollInterval) {
-          clearInterval(transcriptPollInterval);
+        if (transcriptPollIntervalRef.current) {
+          clearInterval(transcriptPollIntervalRef.current);
+          transcriptPollIntervalRef.current = null;
         }
       });
 
@@ -381,33 +391,73 @@ export default function VoiceCallWidget() {
       console.error('Error starting call:', err);
       setError(err?.message || 'Failed to start call');
       setCallStatus('error');
+      isCallActiveRef.current = false;
       clientRef.current = null;
+      if (transcriptPollIntervalRef.current) {
+        clearInterval(transcriptPollIntervalRef.current);
+        transcriptPollIntervalRef.current = null;
+      }
     }
   };
 
   const endCall = () => {
+    console.log('🔴 [END CALL] Ending call...');
+    
+    // Stop the polling interval first
+    isCallActiveRef.current = false;
+    if (transcriptPollIntervalRef.current) {
+      clearInterval(transcriptPollIntervalRef.current);
+      transcriptPollIntervalRef.current = null;
+      console.log('📊 [END CALL] Polling stopped');
+    }
+    
+    // Stop the Retell call
     if (clientRef.current) {
       try {
+        console.log('🔴 [END CALL] Calling stopCall() on Retell client');
         clientRef.current.stopCall();
       } catch (err) {
         console.error('Error ending call:', err);
       }
       clientRef.current = null;
     }
+    
     setCallStatus('ended');
     setIsMuted(false);
     setError(null);
   };
 
   const closeModal = () => {
+    console.log('❌ [CLOSE MODAL] Close button clicked, callStatus:', callStatus);
+    
+    // Always end the call if it's active (connected or connecting)
+    // This ensures the Retell session is properly closed
     if (callStatus === 'connected' || callStatus === 'connecting') {
+      console.log('❌ [CLOSE MODAL] Call is active, ending call...');
       endCall();
     }
+    
+    // Also ensure polling is stopped and call is ended even if status is not exactly 'connected' or 'connecting'
+    // This handles edge cases where the status might be in transition
+    if (clientRef.current) {
+      console.log('❌ [CLOSE MODAL] Client still exists, stopping call...');
+      endCall();
+    }
+    
+    // Clear polling if it's still running
+    if (transcriptPollIntervalRef.current) {
+      console.log('❌ [CLOSE MODAL] Polling still active, clearing...');
+      clearInterval(transcriptPollIntervalRef.current);
+      transcriptPollIntervalRef.current = null;
+    }
+    
+    // Reset all state
     setShowCallModal(false);
     setCallStatus('idle');
     setTranscript([]);
     setCurrentAgentText('');
     setCurrentUserText('');
+    isCallActiveRef.current = false;
   };
 
   const toggleMute = () => {
