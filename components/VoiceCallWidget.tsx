@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Phone, PhoneOff, Mic, MicOff, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/utils/cn';
@@ -16,6 +17,7 @@ interface TranscriptMessage {
 }
 
 export default function VoiceCallWidget() {
+  const router = useRouter();
   const [callStatus, setCallStatus] = useState<CallStatus>('idle');
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,12 +30,27 @@ export default function VoiceCallWidget() {
   const callIdRef = useRef<string | null>(null);
   const transcriptPollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isCallActiveRef = useRef<boolean>(false);
+  const hasAutoStartedRef = useRef<boolean>(false);
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on the client side
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Auto-start call when component mounts (for chat page)
+  useEffect(() => {
+    if (isClient && !hasAutoStartedRef.current) {
+      hasAutoStartedRef.current = true;
+      console.log('🚀 [AUTO-START] Auto-starting call on mount');
+      // Always show modal on chat page and start call immediately
+      setShowCallModal(true);
+      // Small delay to ensure modal is rendered before starting call
+      setTimeout(() => {
+        startCall();
+      }, 100);
+    }
+  }, [isClient]);
 
   // Auto-scroll transcript to bottom when new messages arrive
   useEffect(() => {
@@ -425,6 +442,10 @@ export default function VoiceCallWidget() {
     setCallStatus('ended');
     setIsMuted(false);
     setError(null);
+    
+    // Redirect to home page immediately
+    console.log('🏠 [END CALL] Redirecting to home page');
+    router.push('/');
   };
 
   const closeModal = () => {
@@ -458,6 +479,10 @@ export default function VoiceCallWidget() {
     setCurrentAgentText('');
     setCurrentUserText('');
     isCallActiveRef.current = false;
+    
+    // Redirect to home page
+    console.log('🏠 [CLOSE MODAL] Redirecting to home page');
+    router.push('/');
   };
 
   const toggleMute = () => {
@@ -482,9 +507,9 @@ export default function VoiceCallWidget() {
 
   return (
     <>
-      {/* Full-Screen Call Modal */}
+      {/* Full-Screen Call Modal - Always shown on chat page */}
       {showCallModal && (
-        <div className="fixed inset-0 z-50 bg-white dark:bg-zinc-900 flex flex-col">
+        <div className="fixed inset-0 z-50 flex flex-col chat-background">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-3">
@@ -512,52 +537,62 @@ export default function VoiceCallWidget() {
           </div>
 
           {/* Transcript Content - Full Screen */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 relative">
+            {/* Subtle pattern overlay */}
+            <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, #64748b 1px, transparent 0)',
+              backgroundSize: '40px 40px'
+            }}></div>
+            <div className="relative z-10">
             {transcript.length === 0 && currentAgentText === '' && currentUserText === '' ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm animate-fade-in">
                   {callStatus === 'connecting' ? 'Connecting to agent...' : 'Waiting for conversation to start...'}
                 </p>
               </div>
             ) : (
               <>
-                {transcript.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      'flex flex-col gap-1',
-                      msg.role === 'agent' ? 'items-start' : 'items-end'
-                    )}
-                  >
+                {transcript.map((msg, index) => {
+                  // Create stable key based on content and timestamp to prevent re-renders
+                  const messageKey = `${msg.role}-${msg.timestamp.getTime()}-${msg.content.substring(0, 30)}`;
+                  return (
                     <div
+                      key={messageKey}
                       className={cn(
-                        'rounded-lg px-4 py-3 max-w-[75%] shadow-sm',
-                        msg.role === 'agent'
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-zinc-900 dark:text-zinc-100 border border-blue-200 dark:border-blue-800'
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700'
+                        'flex flex-col gap-1',
+                        msg.role === 'agent' ? 'items-start' : 'items-end'
                       )}
                     >
-                      <div className="text-xs font-semibold mb-1.5 opacity-80">
-                        {msg.role === 'agent' ? '🤖 Agent' : '👤 You'}
+                      <div
+                        className={cn(
+                          'rounded-lg px-4 py-3 max-w-[75%] shadow-sm',
+                          msg.role === 'agent'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-zinc-900 dark:text-zinc-100 border border-blue-200 dark:border-blue-800'
+                            : 'bg-teal-50 dark:bg-teal-900/20 text-zinc-900 dark:text-zinc-100 border border-teal-200 dark:border-teal-800'
+                        )}
+                      >
+                        <div className="text-xs font-semibold mb-1.5 opacity-80">
+                          {msg.role === 'agent' ? '🤖 Agent' : '👤 You'}
+                        </div>
+                        <div className="text-sm leading-relaxed">{msg.content}</div>
                       </div>
-                      <div className="text-sm leading-relaxed">{msg.content}</div>
+                      <div className="text-xs text-zinc-400 dark:text-zinc-500 px-2">
+                        {msg.timestamp.toLocaleTimeString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500 px-2">
-                      {msg.timestamp.toLocaleTimeString()}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
-                {/* Current speaking indicators */}
+                {/* Current speaking indicators - Simple, no animations to prevent wobble */}
                 {currentAgentText && (() => {
                   const lastAgentMsg = transcript.filter(msg => msg.role === 'agent').pop();
                   if (lastAgentMsg && lastAgentMsg.content === currentAgentText) {
                     return null;
                   }
                   return (
-                    <div className="flex flex-col gap-1 items-start">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-3 max-w-[75%] border-2 border-blue-300 dark:border-blue-700 shadow-sm">
+                    <div key="live-agent" className="flex flex-col gap-1 items-start">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-3 max-w-[75%] border border-blue-200 dark:border-blue-800 shadow-sm">
                         <div className="text-xs font-semibold mb-1.5 text-blue-700 dark:text-blue-300 flex items-center gap-2">
                           <span>🤖 Agent</span>
                           <span className="flex gap-1">
@@ -580,14 +615,14 @@ export default function VoiceCallWidget() {
                     return null;
                   }
                   return (
-                    <div className="flex flex-col gap-1 items-end">
-                      <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg px-4 py-3 max-w-[75%] border-2 border-zinc-400 dark:border-zinc-600 shadow-sm">
-                        <div className="text-xs font-semibold mb-1.5 text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                    <div key="live-user" className="flex flex-col gap-1 items-end">
+                      <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg px-4 py-3 max-w-[75%] border border-teal-200 dark:border-teal-800 shadow-sm">
+                        <div className="text-xs font-semibold mb-1.5 text-teal-700 dark:text-teal-300 flex items-center gap-2">
                           <span>👤 You</span>
                           <span className="flex gap-1">
-                            <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-pulse"></span>
-                            <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
-                            <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-pulse"></span>
+                            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
                           </span>
                         </div>
                         <div className="text-sm text-zinc-900 dark:text-zinc-100 leading-relaxed">
@@ -601,6 +636,7 @@ export default function VoiceCallWidget() {
                 <div ref={transcriptEndRef} />
               </>
             )}
+            </div>
           </div>
 
           {/* Call Controls Footer */}
@@ -640,49 +676,7 @@ export default function VoiceCallWidget() {
         </div>
       )}
 
-      {/* Full-Screen "Make a Call" Button - Only shown when modal is closed */}
-      {!showCallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020b32]">
-          <button
-            onClick={startCall}
-            disabled={callStatus === 'connecting'}
-            className={cn(
-              'w-full h-full flex flex-col items-center justify-center gap-4 transition-all',
-              callStatus === 'connecting'
-                ? 'bg-blue-600 hover:bg-blue-700 animate-pulse cursor-wait'
-                : callStatus === 'error'
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-[#00a7ff] hover:bg-[#0090d9] cursor-pointer'
-            )}
-          >
-            {callStatus === 'connecting' ? (
-              <>
-                <div className="w-20 h-20 border-8 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-white text-xl font-semibold">Connecting...</span>
-              </>
-            ) : callStatus === 'error' ? (
-              <>
-                <Phone className="w-24 h-24 text-white" />
-                <span className="text-white text-xl font-semibold">Call Failed</span>
-                {error && <span className="text-white/80 text-sm">{error}</span>}
-                <span className="text-white/60 text-sm mt-2">Click to try again</span>
-              </>
-            ) : callStatus === 'ended' ? (
-              <>
-                <Phone className="w-24 h-24 text-white" />
-                <span className="text-white text-xl font-semibold">Call Ended</span>
-                <span className="text-white/60 text-sm mt-2">Click to start a new call</span>
-              </>
-            ) : (
-              <>
-                <Phone className="w-24 h-24 text-white" />
-                <span className="text-white text-2xl font-bold">Make a Call</span>
-                <span className="text-white/80 text-base">Click to start</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
+      {/* Removed full-screen "Make a Call" button - call starts automatically */}
     </>
   );
 }

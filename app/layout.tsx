@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Navbar from '@/components/Navbar';
+import NavbarHVAC from '@/components/NavbarHVAC';
 import { Toaster } from '@/components/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/utils/helpers';
@@ -57,9 +57,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: PropsWithChildren) {
   const CrispWithNoSSR = dynamic(() => import('../components/crisp'));
-  const VoiceCallWidget = dynamic(() => import('@/components/VoiceCallWidget'), {
-    ssr: false
-  });
   return (
     <html lang="en" className="scroll-smooth scroll-p-16">
       <body
@@ -75,7 +72,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
+          <NavbarHVAC />
           <main
             id="skip"
             className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
@@ -86,7 +83,6 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           <Suspense>
             <Toaster />
           </Suspense>
-          <VoiceCallWidget />
         </ThemeProvider>
         <Analytics />
       </body>

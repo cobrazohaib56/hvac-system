@@ -70,9 +70,9 @@ const createOrRetrieveCustomer = async ({
   // const { data: existingSupabaseCustomer } = await supabaseAdmin.from('customers')...
   
   // Try to retrieve Stripe customer ID by email
-  const stripeCustomers = await stripe.customers.list({ email: email });
+    const stripeCustomers = await stripe.customers.list({ email: email });
   let stripeCustomerId: string | undefined =
-    stripeCustomers.data.length > 0 ? stripeCustomers.data[0].id : undefined;
+      stripeCustomers.data.length > 0 ? stripeCustomers.data[0].id : undefined;
 
   // If still no stripeCustomerId, create a new customer in Stripe
   if (!stripeCustomerId) {

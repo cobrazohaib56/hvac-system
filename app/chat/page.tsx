@@ -1,14 +1,14 @@
-import Chat from '@/components/chat';
-// Supabase removed
-// import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+// Dynamically import VoiceCallWidget to ensure client-side rendering
+const VoiceCallWidget = dynamic(() => import('@/components/VoiceCallWidget'), {
+  ssr: false
+});
 
 export default async function ChatPage() {
-  // Supabase removed
-  // const supabase = createClient();
-  // const { data: { user } } = await supabase.auth.getUser();
-  // const { data: subscription } = await supabase.from('subscriptions')...
-
-  // Allow access without authentication (Supabase removed)
-  return <Chat />;
+  return (
+    <div className="min-h-screen bg-white dark:bg-zinc-900">
+      <VoiceCallWidget />
+    </div>
+  );
 }

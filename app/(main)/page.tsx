@@ -1,12 +1,9 @@
-// Landing page imports commented out - only showing call widget
-// import { Button } from '@/components/ui/button';
-// import EnquiryForm from '@/components/EnquiryForm';
-// import Faq from '@/components/faq';
+import HeroHVAC from '@/components/HeroHVAC';
 
 export default function HomePage() {
   return (
-    <div className="bg-[#020b32] text-white">
-      {/* Landing page content commented out - only showing call widget */}
+    <div className="bg-white dark:bg-zinc-900">
+      <HeroHVAC />
       {/* Hero + Enquiry form */}
       {/* <section className="max-w-6xl mx-auto px-4 lg:px-8 py-10 lg:py-16 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-start">
         <div className="space-y-6">
@@ -135,12 +132,6 @@ export default function HomePage() {
         </div>
       </section> */}
 
-      {/* FAQ */}
-      {/* <section className="bg-[#020b32] pb-16">
-        <div className="max-w-3xl mx-auto px-4 lg:px-0">
-          <Faq />
-        </div>
-      </section> */}
     </div>
   );
 }
