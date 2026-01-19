@@ -13,7 +13,7 @@ export default function Footer() {
             <span className="mr-2">
               <Image src="/logo.png" width={45} height={45} alt="logo" />
             </span>
-            <span className="text-sm">CoolBreeze Climate Solutions</span>
+            <span className="text-sm">AI</span>
           </Link>
         </div>
         <div className="col-span-1 lg:col-span-2">

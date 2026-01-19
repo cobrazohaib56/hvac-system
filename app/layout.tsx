@@ -20,7 +20,7 @@ const meta = {
   description: 'Transform your property with an Air Source Heat Pump. Expert survey, design and installation. Reduce energy bills and your carbon footprint.',
   cardImage: '/og.png',
   robots: 'follow, index',
-  favicon: '/favicon.ico',
+  favicon: 'https://nuclieos.com/wp-content/uploads/2024/11/nuclieos-logo-1.png',
   url: getURL()
 };
 
