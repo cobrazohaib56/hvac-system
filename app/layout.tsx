@@ -35,23 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: 'CoolBreeze Climate Solutions',
     robots: meta.robots,
     icons: { icon: meta.favicon },
-    metadataBase: new URL(meta.url),
-    openGraph: {
-      url: meta.url,
-      title: meta.title,
-      description: meta.description,
-      images: [meta.cardImage],
-      type: 'website',
-      siteName: meta.title
-    },
-    twitter: {
-      card: 'summary_large_image',
-      site: '@',
-      creator: '@',
-      title: meta.title,
-      description: meta.description,
-      images: [meta.cardImage]
-    }
+    metadataBase: new URL(meta.url)
   };
 }
 
