@@ -27,9 +27,19 @@ export default function HeroHVAC() {
         </div>
 
         {/* Description */}
-        <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-3xl mx-auto animate-fade-in-up-delay">
-          Whenever you need any HVAC services like installation, replacement, repair, or maintenance, you can count on us. You&apos;re getting a local expert that fixes any problem really quickly.
-        </p>
+        <div className="animate-fade-in-up-delay space-y-10 mb-8">
+          <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
+            Whenever you need any HVAC services like installation, replacement, repair, or maintenance, you can count on us. You&apos;re getting a local expert that fixes any problem really quickly.
+          </p>
+          <div className="space-y-1">
+            <h2 className="text-2xl md:text-4xl font-semibold text-white">
+              Never miss a lead again
+            </h2>
+            <p className="text-sm md:text-base text-gray-200">
+              24/7, no sick leaves, no mood swings.
+            </p>
+          </div>
+        </div>
 
         {/* CTA Button */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up-delay-2">
