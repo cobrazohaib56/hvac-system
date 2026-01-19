@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from './ui/button';
 
 export default function NavbarHVAC() {
@@ -11,10 +12,23 @@ export default function NavbarHVAC() {
           {/* Logo */}
           <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
             <div className="flex flex-col items-center gap-0.1">
-              <img
-                src="https://nuclieos.com/wp-content/uploads/2024/11/nuclieos-logo-1.png"
+              {/* Black logo for light mode (white navbar) */}
+              <Image
+                src="/nuclieos-logo-1-Black.png"
                 alt="Nuclieos logo"
-                className="h-11 md:h-12 w-auto"
+                width={120}
+                height={48}
+                className="h-11 md:h-12 w-auto dark:hidden"
+                unoptimized
+              />
+              {/* White logo for dark mode (dark navbar) */}
+              <Image
+                src="/nuclieos-logo-1-White.png"
+                alt="Nuclieos logo"
+                width={120}
+                height={48}
+                className="h-11 md:h-12 w-auto hidden dark:block"
+                unoptimized
               />
               <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wider uppercase">
                 AI Receptionist
