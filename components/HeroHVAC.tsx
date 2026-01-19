@@ -27,7 +27,7 @@ export default function HeroHVAC() {
         </div>
 
         {/* Description */}
-        <div className="animate-fade-in-up-delay space-y-10 mb-8">
+        <div className="animate-fade-in-up-delay space-y-11 mb-8">
           <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
             Whenever you need any HVAC services like installation, replacement, repair, or maintenance, you can count on us. You&apos;re getting a local expert that fixes any problem really quickly.
           </p>
