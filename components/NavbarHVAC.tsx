@@ -10,7 +10,7 @@ export default function NavbarHVAC() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-0.1">
               <img
                 src="https://nuclieos.com/wp-content/uploads/2024/11/nuclieos-logo-1.png"
                 alt="Nuclieos logo"
