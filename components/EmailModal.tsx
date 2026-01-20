@@ -12,6 +12,7 @@ interface EmailModalProps {
 }
 
 export default function EmailModal({ isOpen, onClose, onSuccess }: EmailModalProps) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +22,12 @@ export default function EmailModal({ isOpen, onClose, onSuccess }: EmailModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Basic validation
+    if (!name || name.trim().length === 0) {
+      setError('Please enter your name');
+      return;
+    }
     
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,7 +44,7 @@ export default function EmailModal({ isOpen, onClose, onSuccess }: EmailModalPro
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ name: name.trim(), email }),
       });
 
       if (!response.ok) {
@@ -82,10 +89,25 @@ export default function EmailModal({ isOpen, onClose, onSuccess }: EmailModalPro
           Get Started
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Please enter your email to continue
+          Please enter your name and email to continue
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">
+              Full Name
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              className="mt-1"
+              required
+              disabled={isLoading}
+            />
+          </div>
           <div>
             <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
               Email Address

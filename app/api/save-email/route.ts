@@ -3,7 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { name, email } = await request.json();
+
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Name is required' },
+        { status: 400 }
+      );
+    }
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
@@ -34,11 +41,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Insert email into the database
+    // Insert name and email into the database
     const { error: insertError } = await supabase
       .from('user_emails')
       .insert([
         {
+          name: name.trim(),
           email: email.toLowerCase().trim(),
           created_at: new Date().toISOString(),
         },
