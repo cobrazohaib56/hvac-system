@@ -16,8 +16,8 @@ const fontSans = FontSans({
 });
 
 const meta = {
-  title: 'CoolBreeze Climate Solutions - Expert Heat Pump Installation',
-  description: 'Transform your property with an Air Source Heat Pump. Expert survey, design and installation. Reduce energy bills and your carbon footprint.',
+  title: 'Nuclieos AI Receptionist',
+  description: '24/7 AI Receptionist for your business. No sick leaves, no mood swings. Transform your customer engagement with intelligent automation.',
   cardImage: '/og.png',
   robots: 'follow, index',
   favicon: 'https://nuclieos.com/wp-content/uploads/2024/11/nuclieos-logo-1.png',
@@ -29,10 +29,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: meta.title,
     description: meta.description,
     referrer: 'origin-when-cross-origin',
-    keywords: ['heat pump', 'HVAC', 'air source heat pump', 'climate solutions', 'heating', 'cooling', 'energy efficiency'],
-    authors: [{ name: 'CoolBreeze Climate Solutions', url: getURL() }],
-    creator: 'CoolBreeze Climate Solutions',
-    publisher: 'CoolBreeze Climate Solutions',
+    keywords: ['AI receptionist', 'AI assistant', 'customer service', 'lead generation', 'automation', '24/7 support'],
+    authors: [{ name: 'Nuclieos AI Receptionist', url: getURL() }],
+    creator: 'Nuclieos AI Receptionist',
+    publisher: 'Nuclieos AI Receptionist',
     robots: meta.robots,
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url)

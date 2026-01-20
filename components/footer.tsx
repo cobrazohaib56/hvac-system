@@ -81,7 +81,7 @@ export default function Footer() {
       <div className="flex flex-col items-center justify-between py-12 space-y-4 md:flex-row ">
         <div>
           <span>
-            &copy; {new Date().getFullYear()} CoolBreeze Climate Solutions. All rights
+            &copy; {new Date().getFullYear()} Nuclieos AI Receptionist. All rights
             reserved.
           </span>
         </div>
